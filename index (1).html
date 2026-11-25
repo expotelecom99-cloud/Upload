@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#062a20">
+<title>ফাইল আপলোড</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep:#062a20; --main:#0b6e4f; --light:#12a377; --gold:#e8b63c;
+    --bg:#f3f6f5; --text:#14201c; --muted:#6a7a74; --line:#e3ebe8; --err:#c0392b;
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { scroll-behavior:smooth; }
+  body {
+    margin:0; min-height:100vh; color:var(--text);
+    font-family:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif;
+    background:var(--bg);
+  }
+
+  /* ---------- উপরের হিরো অংশ ---------- */
+  .hero {
+    position:relative; overflow:hidden; color:#fff; text-align:center;
+    padding:44px 20px 96px;
+    background:linear-gradient(135deg,#041d16 0%,#0b6e4f 60%,#12a377 100%);
+  }
+  .hero::before, .hero::after {
+    content:""; position:absolute; border-radius:50%; filter:blur(40px); opacity:.35;
+  }
+  .hero::before { width:260px; height:260px; background:var(--gold); top:-90px; right:-60px; }
+  .hero::after  { width:300px; height:300px; background:#34d3a0; bottom:-160px; left:-90px; }
+  .hero > * { position:relative; z-index:1; }
+  .badge {
+    display:inline-flex; align-items:center; gap:6px; font-size:.8rem; font-weight:600;
+    padding:6px 14px; border-radius:99px; background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.25); backdrop-filter:blur(6px);
+  }
+  .hero h1 { font-size:clamp(1.7rem,6vw,2.3rem); margin:16px 0 8px; line-height:1.25; font-weight:700; }
+  .hero p { margin:0 auto; max-width:420px; color:rgba(255,255,255,.82); line-height:1.6; }
+
+  /* ---------- মূল কার্ড ---------- */
+  .wrap { max-width:600px; margin:-64px auto 0; padding:0 16px 40px; position:relative; z-index:2; }
+  .card {
+    background:#fff; border-radius:22px; padding:22px 20px 24px;
+    box-shadow:0 20px 50px -12px rgba(6,42,32,.28), 0 2px 6px rgba(6,42,32,.06);
+  }
+  .steps { display:flex; justify-content:space-between; gap:8px; margin-bottom:6px; }
+  .step { flex:1; text-align:center; font-size:.78rem; color:var(--muted); font-weight:500; }
+  .step b {
+    display:flex; align-items:center; justify-content:center; width:30px; height:30px; margin:0 auto 6px;
+    border-radius:50%; background:linear-gradient(135deg,var(--main),var(--light)); color:#fff; font-size:.9rem;
+  }
+
+  .sec { margin-top:20px; }
+  .sec h2 { font-size:1rem; margin:0 0 10px; font-weight:600; display:flex; align-items:center; gap:8px; }
+  .opt { font-size:.72rem; font-weight:500; color:var(--muted); background:#eef3f1; padding:2px 9px; border-radius:99px; }
+
+  .field { position:relative; margin-bottom:12px; }
+  .field span.ic { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:1.05rem; opacity:.7; }
+  input[type=text], input[type=tel], textarea {
+    width:100%; font:inherit; color:inherit; background:#f8fbfa;
+    border:1.5px solid var(--line); border-radius:12px; padding:13px 14px 13px 42px;
+    transition:border-color .15s, box-shadow .15s, background .15s;
+  }
+  textarea { padding-left:14px; min-height:88px; resize:vertical; }
+  input:focus, textarea:focus {
+    outline:none; border-color:var(--light); background:#fff; box-shadow:0 0 0 4px rgba(18,163,119,.15);
+  }
+  ::placeholder { color:#9aa9a3; }
+
+  /* ---------- ড্রপ জোন ---------- */
+  .drop {
+    border:2px dashed #a9c4ba; border-radius:16px; padding:30px 14px; text-align:center; cursor:pointer;
+    background:linear-gradient(180deg,#fbfefd,#f1f8f5); transition:all .2s;
+  }
+  .drop:hover, .drop.over { border-color:var(--light); background:#e8f6f0; transform:translateY(-1px); }
+  .drop .up {
+    width:58px; height:58px; margin:0 auto 10px; border-radius:18px; display:flex; align-items:center; justify-content:center;
+    font-size:1.7rem; background:linear-gradient(135deg,var(--main),var(--light)); color:#fff;
+    box-shadow:0 10px 20px -6px rgba(11,110,79,.55);
+  }
+  .drop strong { display:block; font-size:1.02rem; }
+  .drop small { display:block; margin-top:6px; color:var(--muted); line-height:1.5; }
+
+  #list { list-style:none; padding:0; margin:12px 0 0; }
+  #list li {
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border:1.5px solid var(--line);
+    border-radius:12px; margin-bottom:8px; background:#fff; animation:pop .25s ease;
+  }
+  @keyframes pop { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  #list .fi { font-size:1.5rem; }
+  #list .mid { flex:1; min-width:0; }
+  #list .n { display:block; font-weight:500; font-size:.92rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #list .s { color:var(--muted); font-size:.76rem; }
+  #list .x { border:0; background:#fdecea; color:var(--err); width:30px; height:30px; border-radius:50%; font-size:.95rem; cursor:pointer; }
+  #list .st { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; }
+  #list .st.ok { background:#e2f6ee; color:var(--main); }
+  #list .st.bad { background:#fdecea; color:var(--err); }
+  #list .st.load { border:3px solid #cfe6dc; border-top-color:var(--main); animation:spin .8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .bar { height:8px; background:#e5eeeb; border-radius:99px; overflow:hidden; margin-top:16px; display:none; }
+  .bar div { height:100%; width:0; background:linear-gradient(90deg,var(--main),var(--gold)); transition:width .3s; border-radius:99px; }
+
+  .btn {
+    width:100%; margin-top:18px; padding:15px; border:0; border-radius:14px; cursor:pointer;
+    font:inherit; font-weight:700; font-size:1.08rem; color:#fff;
+    background:linear-gradient(135deg,var(--main),var(--light));
+    box-shadow:0 14px 26px -10px rgba(11,110,79,.7); transition:transform .15s, box-shadow .15s, opacity .15s;
+  }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 18px 30px -10px rgba(11,110,79,.75); }
+  .btn:active { transform:translateY(0); }
+  .btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+
+  #msg { margin-top:14px; padding:13px 14px; border-radius:12px; display:none; font-weight:600; line-height:1.5; }
+  #msg.ok { display:block; background:#e6f6ef; color:var(--main); border:1px solid #bfe5d4; }
+  #msg.err { display:block; background:#fdecea; color:var(--err); border:1px solid #f4c6c0; }
+
+  .trust { display:flex; flex-wrap:wrap; justify-content:center; gap:8px 18px; margin-top:20px; color:var(--muted); font-size:.8rem; }
+  .trust span { display:inline-flex; align-items:center; gap:5px; }
+  .hp { position:absolute; left:-9999px; }
+
+  /* ---------- সফল হওয়ার স্ক্রিন ---------- */
+  .done { display:none; text-align:center; padding:26px 8px 8px; }
+  .done .tick {
+    width:86px; height:86px; margin:0 auto 16px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:2.6rem; color:#fff; background:linear-gradient(135deg,var(--main),var(--light));
+    box-shadow:0 14px 30px -8px rgba(11,110,79,.6); animation:bounce .5s ease;
+  }
+  @keyframes bounce { 0%{transform:scale(.3);opacity:0} 70%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
+  .done h3 { margin:0 0 6px; font-size:1.35rem; }
+  .done p { margin:0 0 18px; color:var(--muted); }
+  .btn2 {
+    border:1.5px solid var(--main); background:#fff; color:var(--main); font:inherit; font-weight:600;
+    padding:11px 22px; border-radius:12px; cursor:pointer;
+  }
+  .btn2:hover { background:#eef8f4; }
+
+  footer { text-align:center; color:var(--muted); font-size:.78rem; padding:0 16px 28px; }
+
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0b1411; --text:#e8f1ee; --muted:#93a59e; --line:#243630; }
+    .card { background:#12201b; box-shadow:0 20px 50px -12px rgba(0,0,0,.6); }
+    input[type=text], input[type=tel], textarea { background:#0e1a16; }
+    input:focus, textarea:focus { background:#0e1a16; }
+    .drop { background:linear-gradient(180deg,#10201a,#0e1b16); border-color:#2f5446; }
+    .drop:hover, .drop.over { background:#12261f; }
+    #list li { background:#0e1a16; }
+    .opt { background:#1a2c26; }
+    .btn2 { background:transparent; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <span class="badge">🔒 নিরাপদ ও দ্রুত আপলোড</span>
+  <h1 id="title">আপনার ফাইল পাঠান</h1>
+  <p>প্রিন্ট বা অন্য যেকোনো কাজের ফাইল এখানে আপলোড করুন। আমরা সরাসরি পেয়ে যাব, WhatsApp বা মেইলের ঝামেলা নেই।</p>
+</header>
+
+<main class="wrap">
+  <form id="f" class="card" autocomplete="on">
+
+    <div id="formArea">
+      <div class="steps">
+        <div class="step"><b>১</b>ফাইল বাছুন</div>
+        <div class="step"><b>২</b>আপলোড করুন</div>
+      </div>
+
+      <div class="sec">
+        <h2>📂 ফাইল <span class="opt" style="background:#e2f6ee;color:var(--main)">আবশ্যক</span></h2>
+        <div class="drop" id="drop">
+          <div class="up">⬆</div>
+          <strong>ফাইল বাছাই করুন বা টেনে আনুন</strong>
+          <small>PDF, ছবি, Word, Excel সহ সব ধরনের ফাইল<br>প্রতি ফাইল সর্বোচ্চ ২০ MB · একসাথে অনেকগুলো দেওয়া যাবে</small>
+        </div>
+        <input type="file" id="file" multiple hidden>
+        <ul id="list"></ul>
+      </div>
+
+      <!-- স্প্যাম বট আটকানোর লুকানো ঘর -->
+      <input type="text" id="website" class="hp" tabindex="-1" autocomplete="off">
+
+      <div class="bar" id="bar"><div id="fill"></div></div>
+      <button class="btn" id="send" type="submit">আপলোড করুন</button>
+      <div id="msg"></div>
+
+      <div class="trust">
+        <span>🔒 ফাইল শুধু আমরাই দেখতে পাই</span>
+        <span>⚡ দ্রুত পৌঁছায়</span>
+        <span>✅ সব ফরম্যাট চলে</span>
+      </div>
+    </div>
+
+    <div class="done" id="done">
+      <div class="tick">✓</div>
+      <h3>ফাইল পৌঁছে গেছে!</h3>
+      <p>ধন্যবাদ। আমরা আপনার ফাইল পেয়ে গেছি।</p>
+      <button type="button" class="btn2" id="again">আরও ফাইল পাঠান</button>
+    </div>
+
+  </form>
+</main>
+
+<footer>© <span id="yr"></span> জিলানী টেলিকম, বেলাখান মসজিদ রোড, মিয়া খান নগর, বাকলিয়া, চট্টগ্রাম</footer>
+
+<script>
+// ====== Apps Script ডিপ্লয় করার পর পাওয়া Web app URL ======
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlehwhMJB0TbM-j_ZArvWzgUzrNKfmYwd_TFJo6PojfqnpxIUPKt0oPERxiFp9_IwvmQ/exec';
+// ====== চাইলে দোকানের নাম দিন, উপরের হেডিংয়ে দেখাবে ======
+const SHOP_NAME = '';
+// ===========================================================
+
+if (SHOP_NAME) document.getElementById('title').textContent = SHOP_NAME + '-এ ফাইল পাঠান';
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+const MAX = 20 * 1024 * 1024;
+const BLOCKED = ['exe','bat','cmd','msi','js','vbs','scr','com','jar','ps1','sh','apk'];
+let files = [];
+
+const $ = id => document.getElementById(id);
+const drop = $('drop'), input = $('file'), list = $('list');
+
+drop.onclick = () => input.click();
+input.onchange = () => { add(input.files); input.value = ''; };
+['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => add(e.dataTransfer.files));
+
+function size(b) { return b > 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.ceil(b/1024)+' KB'; }
+function ext(n) { return (n.split('.').pop() || '').toLowerCase(); }
+function icon(n) {
+  const e = ext(n);
+  if (e === 'pdf') return '📕';
+  if (['jpg','jpeg','png','gif','webp','bmp','heic','svg','tif','tiff'].includes(e)) return '🖼️';
+  if (['doc','docx','odt','rtf','txt'].includes(e)) return '📘';
+  if (['xls','xlsx','csv','ods'].includes(e)) return '📗';
+  if (['ppt','pptx'].includes(e)) return '📙';
+  if (['zip','rar','7z'].includes(e)) return '🗜️';
+  return '📄';
+}
+
+function add(fl) {
+  for (const f of fl) {
+    if (f.size > MAX) { show('"'+f.name+'" ২০ MB এর বেশি, তাই নেওয়া গেল না', 'err'); continue; }
+    if (BLOCKED.includes(ext(f.name))) { show('"'+f.name+'" এই ধরনের ফাইল নেওয়া হয় না', 'err'); continue; }
+    files.push({ file: f, state: '' });
+    $('msg').className = '';
+  }
+  render();
+}
+
+function render() {
+  list.innerHTML = '';
+  files.forEach((o, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="fi">'+icon(o.file.name)+'</span><div class="mid"><span class="n"></span><span class="s">'+size(o.file.size)+'</span></div>';
+    li.querySelector('.n').textContent = o.file.name;
+    if (o.state === 'ok') li.insertAdjacentHTML('beforeend', '<span class="st ok">✓</span>');
+    else if (o.state === 'bad') li.insertAdjacentHTML('beforeend', '<span class="st bad">✗</span>');
+    else if (o.state === 'load') li.insertAdjacentHTML('beforeend', '<span class="st load"></span>');
+    else {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'x'; b.textContent = '✕'; b.title = 'বাদ দিন';
+      b.onclick = () => { files.splice(i, 1); render(); };
+      li.appendChild(b);
+    }
+    list.appendChild(li);
+  });
+}
+
+function show(t, type) { const m = $('msg'); m.textContent = t; m.className = type; }
+
+function toBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+$('again').onclick = () => {
+  $('done').style.display = 'none';
+  $('formArea').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+$('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!files.length) return show('অন্তত একটা ফাইল বাছাই করুন', 'err');
+  if (SCRIPT_URL.startsWith('এখানে')) return show('SCRIPT_URL বসানো হয়নি', 'err');
+
+  const btn = $('send'); btn.disabled = true; btn.textContent = 'আপলোড হচ্ছে… একটু অপেক্ষা করুন';
+  $('bar').style.display = 'block'; $('msg').className = '';
+  const sid = Math.random().toString(36).slice(2, 8);
+  let done = 0, failed = 0;
+  $('fill').style.width = '4%';
+
+  for (const o of files) {
+    if (o.state === 'ok') { done++; continue; }
+    o.state = 'load'; render();
+    try {
+      const body = JSON.stringify({
+        website: $('website').value, submissionId: sid,
+        fileName: o.file.name, mimeType: o.file.type, data: await toBase64(o.file)
+      });
+      // text/plain ব্যবহার করলে ব্রাউজার CORS preflight পাঠায় না
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error);
+      o.state = 'ok'; done++;
+    } catch (err) {
+      o.state = 'bad'; failed++;
+    }
+    $('fill').style.width = ((done + failed) / files.length * 100) + '%';
+    render();
+  }
+
+  btn.disabled = false; btn.textContent = 'আপলোড করুন';
+  if (!failed) {
+    files = []; render();
+    $('formArea').style.display = 'none';
+    $('done').style.display = 'block';
+    $('bar').style.display = 'none'; $('fill').style.width = '0';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    show(failed + 'টা ফাইল যায়নি। আবার "আপলোড করুন" চাপুন, শুধু বাকিগুলো যাবে।', 'err');
+    files = files.filter(o => o.state !== 'ok');
+    files.forEach(o => o.state = ''); render();
+  }
+});
+</script>
+</body>
+</html>
