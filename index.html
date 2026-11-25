@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ফাইল আপলোড</title>
+<style>
+  :root { --main:#0b6e4f; --bg:#f4f7f6; --text:#1b1f1e; --muted:#64706c; --err:#c0392b; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif; background:var(--bg); color:var(--text); }
+  .wrap { max-width:560px; margin:0 auto; padding:20px 16px 40px; }
+  h1 { font-size:1.5rem; margin:8px 0 4px; }
+  p.sub { color:var(--muted); margin:0 0 20px; }
+  .card { background:#fff; border-radius:14px; padding:18px; box-shadow:0 1px 6px rgba(0,0,0,.08); }
+  label { display:block; font-weight:600; margin:14px 0 6px; }
+  input[type=text], input[type=tel], textarea {
+    width:100%; padding:11px 12px; border:1px solid #cfd8d5; border-radius:10px; font:inherit; background:#fff;
+  }
+  textarea { min-height:80px; resize:vertical; }
+  .drop { border:2px dashed #9db8af; border-radius:12px; padding:26px 12px; text-align:center; cursor:pointer; background:#fafdfc; }
+  .drop.over { background:#e6f4ef; border-color:var(--main); }
+  .drop small { color:var(--muted); display:block; margin-top:6px; }
+  #list { list-style:none; padding:0; margin:12px 0 0; }
+  #list li { display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid #e2e8e6; border-radius:8px; margin-bottom:6px; font-size:.92rem; }
+  #list .n { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #list .s { color:var(--muted); font-size:.8rem; white-space:nowrap; }
+  #list button { border:0; background:none; color:var(--err); font-size:1.1rem; cursor:pointer; }
+  #list .ok { color:var(--main); font-weight:700; }
+  #list .bad { color:var(--err); font-weight:700; }
+  .btn { width:100%; margin-top:18px; padding:13px; border:0; border-radius:10px; background:var(--main); color:#fff; font:inherit; font-weight:700; font-size:1.05rem; cursor:pointer; }
+  .btn:disabled { opacity:.55; cursor:not-allowed; }
+  .bar { height:8px; background:#e2e8e6; border-radius:6px; overflow:hidden; margin-top:14px; display:none; }
+  .bar div { height:100%; width:0; background:var(--main); transition:width .2s; }
+  #msg { margin-top:14px; padding:12px; border-radius:10px; display:none; font-weight:600; }
+  #msg.ok { display:block; background:#e6f4ef; color:var(--main); }
+  #msg.err { display:block; background:#fdecea; color:var(--err); }
+  .hp { position:absolute; left:-9999px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ফাইল পাঠান</h1>
+  <p class="sub">প্রিন্ট বা অন্য কাজের ফাইল এখানে আপলোড করুন। আমরা সরাসরি পেয়ে যাব।</p>
+
+  <form id="f" class="card" autocomplete="on">
+    <label for="name">আপনার নাম *</label>
+    <input type="text" id="name" required maxlength="40">
+
+    <label for="phone">মোবাইল / WhatsApp নম্বর *</label>
+    <input type="tel" id="phone" required maxlength="20" placeholder="01XXXXXXXXX">
+
+    <label for="note">কী কাজ করাতে চান? (ঐচ্ছিক)</label>
+    <textarea id="note" maxlength="1000" placeholder="যেমন: A4 সাদা-কালো প্রিন্ট, ১০ কপি"></textarea>
+
+    <!-- স্প্যাম বট আটকানোর লুকানো ঘর -->
+    <input type="text" id="website" class="hp" tabindex="-1" autocomplete="off">
+
+    <label>ফাইল *</label>
+    <div class="drop" id="drop">
+      📎 ফাইল বাছাই করুন বা এখানে টেনে আনুন
+      <small>PDF, ছবি, Word, Excel সহ সব ধরনের ফাইল · প্রতি ফাইল সর্বোচ্চ ২০ MB</small>
+    </div>
+    <input type="file" id="file" multiple hidden>
+    <ul id="list"></ul>
+
+    <div class="bar" id="bar"><div id="fill"></div></div>
+    <button class="btn" id="send" type="submit">আপলোড করুন</button>
+    <div id="msg"></div>
+  </form>
+</div>
+
+<script>
+// ====== শুধু এই লাইনটা বদলান: Apps Script ডিপ্লয় করার পর পাওয়া Web app URL ======
+const SCRIPT_URL = 'এখানে_Web_app_URL_বসান';
+// ===========================================================================
+
+const MAX = 20 * 1024 * 1024;
+const BLOCKED = ['exe','bat','cmd','msi','js','vbs','scr','com','jar','ps1','sh','apk'];
+let files = [];
+
+const $ = id => document.getElementById(id);
+const drop = $('drop'), input = $('file'), list = $('list');
+
+drop.onclick = () => input.click();
+input.onchange = () => { add(input.files); input.value = ''; };
+['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => add(e.dataTransfer.files));
+
+function size(b) { return b > 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.ceil(b/1024)+' KB'; }
+function ext(n) { return (n.split('.').pop() || '').toLowerCase(); }
+
+function add(fl) {
+  for (const f of fl) {
+    if (f.size > MAX) { show('"'+f.name+'" ২০ MB এর বেশি, তাই নেওয়া গেল না', 'err'); continue; }
+    if (BLOCKED.includes(ext(f.name))) { show('"'+f.name+'" এই ধরনের ফাইল নেওয়া হয় না', 'err'); continue; }
+    files.push({ file: f, state: '' });
+  }
+  render();
+}
+
+function render() {
+  list.innerHTML = '';
+  files.forEach((o, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = '<span class="n"></span><span class="s">'+size(o.file.size)+'</span>';
+    li.querySelector('.n').textContent = o.file.name;
+    if (o.state === 'ok') li.insertAdjacentHTML('beforeend', '<span class="ok">✓</span>');
+    else if (o.state === 'bad') li.insertAdjacentHTML('beforeend', '<span class="bad">✗</span>');
+    else {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = '✕';
+      b.onclick = () => { files.splice(i, 1); render(); };
+      li.appendChild(b);
+    }
+    list.appendChild(li);
+  });
+}
+
+function show(t, type) { const m = $('msg'); m.textContent = t; m.className = type; }
+
+function toBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+$('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!files.length) return show('অন্তত একটা ফাইল বাছাই করুন', 'err');
+  if (SCRIPT_URL.startsWith('এখানে')) return show('SCRIPT_URL বসানো হয়নি', 'err');
+
+  const btn = $('send'); btn.disabled = true; btn.textContent = 'আপলোড হচ্ছে…';
+  $('bar').style.display = 'block'; $('msg').className = '';
+  const sid = Math.random().toString(36).slice(2, 8);
+  let done = 0, failed = 0;
+
+  for (const o of files) {
+    if (o.state === 'ok') { done++; continue; }
+    try {
+      const body = JSON.stringify({
+        name: $('name').value, phone: $('phone').value, note: $('note').value,
+        website: $('website').value, submissionId: sid,
+        fileName: o.file.name, mimeType: o.file.type, data: await toBase64(o.file)
+      });
+      // text/plain ব্যবহার করলে ব্রাউজার CORS preflight পাঠায় না
+      const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error);
+      o.state = 'ok'; done++;
+    } catch (err) {
+      o.state = 'bad'; failed++;
+    }
+    $('fill').style.width = ((done + failed) / files.length * 100) + '%';
+    render();
+  }
+
+  btn.disabled = false; btn.textContent = 'আপলোড করুন';
+  if (!failed) {
+    show('✓ সব ফাইল সফলভাবে পাঠানো হয়েছে। ধন্যবাদ!', 'ok');
+    files = []; $('note').value = ''; render();
+    setTimeout(() => { $('bar').style.display = 'none'; $('fill').style.width = '0'; }, 1500);
+  } else {
+    show(failed + 'টা ফাইল যায়নি। আবার "আপলোড করুন" চাপুন, শুধু বাকিগুলো যাবে।', 'err');
+    files = files.filter(o => o.state !== 'ok');
+    setTimeout(() => { files.forEach(o => o.state = ''); render(); }, 0);
+  }
+});
+</script>
+</body>
+</html>
