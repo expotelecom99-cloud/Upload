@@ -176,6 +176,20 @@
   @keyframes bounce { 0%{transform:scale(.3);opacity:0} 70%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
   .done h3 { margin:0 0 6px; font-size:1.35rem; }
   .done p { margin:0 0 18px; color:var(--muted); }
+  .codebox {
+    margin:0 auto 20px; max-width:340px; padding:16px 14px; border-radius:16px;
+    background:#eef8f4; border:1.5px dashed var(--light);
+  }
+  .codebox small { display:block; color:var(--muted); font-size:.82rem; }
+  .codebox .code {
+    display:block; margin:6px 0 10px; font-size:2.1rem; font-weight:700; letter-spacing:.12em;
+    font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--main);
+  }
+  .codebox .cp {
+    border:0; background:var(--main); color:#fff; font:inherit; font-weight:600; font-size:.88rem;
+    padding:8px 18px; border-radius:99px; cursor:pointer;
+  }
+  .codebox .note { margin:12px 0 0; font-size:.8rem; color:var(--muted); line-height:1.6; }
   .btn2 {
     border:1.5px solid var(--main); background:#fff; color:var(--main); font:inherit; font-weight:600;
     padding:11px 22px; border-radius:12px; cursor:pointer;
@@ -195,6 +209,7 @@
     #list .th { background:#1a2c26; }
     .opt { background:#1a2c26; }
     .btn2 { background:transparent; }
+    .codebox { background:#12261f; }
     .mhead button { background:#1a2c26; }
   }
 </style>
@@ -259,6 +274,12 @@
       <div class="tick">✓</div>
       <h3>ফাইল পৌঁছে গেছে!</h3>
       <p>ধন্যবাদ। আমরা আপনার ফাইল পেয়ে গেছি।</p>
+      <div class="codebox">
+        <small>আপনার অর্ডার কোড</small>
+        <span class="code" id="code">#-----</span>
+        <button type="button" class="cp" id="copy">📋 কোড কপি করুন</button>
+        <p class="note">দোকানে এসে বা WhatsApp-এ এই কোডটা বললেই আমরা আপনার ফাইল খুঁজে পাব। স্ক্রিনশট রেখে দিতে পারেন।</p>
+      </div>
       <button type="button" class="btn2" id="again">আরও ফাইল পাঠান</button>
     </div>
 
@@ -479,6 +500,37 @@ function toBase64(file) {
   });
 }
 
+// অর্ডার কোড: ৫ অক্ষর, গোলমাল হয় এমন অক্ষর (0, O, 1, I) বাদ
+function makeCode() {
+  const cs = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  const buf = new Uint32Array(5);
+  (window.crypto || window.msCrypto).getRandomValues(buf);
+  for (let i = 0; i < 5; i++) s += cs[buf[i] % cs.length];
+  return s;
+}
+
+// ফোলডারের নাম চেনার জন্য ডিভাইসের ধরন
+function device() {
+  const u = navigator.userAgent || '';
+  if (/android/i.test(u)) return 'Android';
+  if (/iphone|ipad|ipod/i.test(u)) return 'iPhone';
+  if (/windows/i.test(u)) return 'Windows';
+  if (/macintosh|mac os/i.test(u)) return 'Mac';
+  return 'অন্যান্য';
+}
+
+$('copy').onclick = async () => {
+  const t = $('code').textContent;
+  try { await navigator.clipboard.writeText(t); }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta);
+    ta.select(); try { document.execCommand('copy'); } catch (x) {} ta.remove();
+  }
+  $('copy').textContent = '✓ কপি হয়েছে';
+  setTimeout(() => { $('copy').textContent = '📋 কোড কপি করুন'; }, 1800);
+};
+
 $('again').onclick = () => {
   $('done').style.display = 'none';
   $('formArea').style.display = 'block';
@@ -493,7 +545,7 @@ $('f').addEventListener('submit', async e => {
   const btn = $('send'); btn.disabled = true; btn.textContent = 'আপলোড হচ্ছে… একটু অপেক্ষা করুন';
   $('bar').style.display = 'block'; $('msg').className = '';
   // আবার চেষ্টা করলেও একই ফোল্ডারে যাবে, তাই সফল না হওয়া পর্যন্ত একই কোড থাকে
-  if (!window.__sid) window.__sid = Math.random().toString(36).slice(2, 8);
+  if (!window.__sid) window.__sid = makeCode();
   const sid = window.__sid;
   let done = 0, failed = 0;
   $('fill').style.width = '4%';
@@ -503,7 +555,7 @@ $('f').addEventListener('submit', async e => {
     o.state = 'load'; render();
     try {
       const body = JSON.stringify({
-        name: $('name').value.trim(),
+        name: $('name').value.trim(), device: device(),
         website: $('website').value, submissionId: sid,
         fileName: o.file.name, mimeType: o.file.type, data: await toBase64(o.file)
       });
@@ -522,6 +574,7 @@ $('f').addEventListener('submit', async e => {
   btn.disabled = false; btn.textContent = 'আপলোড করুন';
   if (!failed) {
     files.forEach(o => { if (o.url) URL.revokeObjectURL(o.url); });
+    $('code').textContent = '#' + sid;
     window.__sid = null;
     files = []; render();
     $('formArea').style.display = 'none';
