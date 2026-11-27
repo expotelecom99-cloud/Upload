@@ -57,16 +57,16 @@
   .sec { margin-top:20px; }
   .sec h2 { font-size:1rem; margin:0 0 10px; font-weight:600; display:flex; align-items:center; gap:8px; }
   .opt { font-size:.72rem; font-weight:500; color:var(--muted); background:#eef3f1; padding:2px 9px; border-radius:99px; }
+  .hint { margin:8px 2px 0; font-size:.8rem; color:var(--muted); }
 
-  .field { position:relative; margin-bottom:12px; }
+  .field { position:relative; }
   .field span.ic { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:1.05rem; opacity:.7; }
-  input[type=text], input[type=tel], textarea {
+  input[type=text] {
     width:100%; font:inherit; color:inherit; background:#f8fbfa;
     border:1.5px solid var(--line); border-radius:12px; padding:13px 14px 13px 42px;
     transition:border-color .15s, box-shadow .15s, background .15s;
   }
-  textarea { padding-left:14px; min-height:88px; resize:vertical; }
-  input:focus, textarea:focus {
+  input:focus {
     outline:none; border-color:var(--light); background:#fff; box-shadow:0 0 0 4px rgba(18,163,119,.15);
   }
   ::placeholder { color:#9aa9a3; }
@@ -85,18 +85,28 @@
   .drop strong { display:block; font-size:1.02rem; }
   .drop small { display:block; margin-top:6px; color:var(--muted); line-height:1.5; }
 
+  /* ---------- ফাইলের তালিকা ও প্রিভিউ ---------- */
   #list { list-style:none; padding:0; margin:12px 0 0; }
   #list li {
-    display:flex; align-items:center; gap:10px; padding:10px 12px; border:1.5px solid var(--line);
-    border-radius:12px; margin-bottom:8px; background:#fff; animation:pop .25s ease;
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border:1.5px solid var(--line);
+    border-radius:14px; margin-bottom:8px; background:#fff; animation:pop .25s ease;
   }
   @keyframes pop { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-  #list .fi { font-size:1.5rem; }
-  #list .mid { flex:1; min-width:0; }
+  #list .th {
+    flex:none; width:56px; height:56px; border-radius:11px; overflow:hidden; cursor:pointer;
+    background:#eef5f2; display:flex; align-items:center; justify-content:center; font-size:1.7rem;
+    border:1px solid var(--line);
+  }
+  #list .th img { width:100%; height:100%; object-fit:cover; display:block; }
+  #list .mid { flex:1; min-width:0; cursor:pointer; }
   #list .n { display:block; font-weight:500; font-size:.92rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   #list .s { color:var(--muted); font-size:.76rem; }
-  #list .x { border:0; background:#fdecea; color:var(--err); width:30px; height:30px; border-radius:50%; font-size:.95rem; cursor:pointer; }
-  #list .st { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; }
+  #list .pv, #list .x {
+    flex:none; border:0; width:34px; height:34px; border-radius:50%; font-size:.95rem; cursor:pointer;
+  }
+  #list .pv { background:#e2f6ee; color:var(--main); }
+  #list .x { background:#fdecea; color:var(--err); }
+  #list .st { flex:none; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; }
   #list .st.ok { background:#e2f6ee; color:var(--main); }
   #list .st.bad { background:#fdecea; color:var(--err); }
   #list .st.load { border:3px solid #cfe6dc; border-top-color:var(--main); animation:spin .8s linear infinite; }
@@ -123,6 +133,26 @@
   .trust span { display:inline-flex; align-items:center; gap:5px; }
   .hp { position:absolute; left:-9999px; }
 
+  /* ---------- প্রিভিউ পপআপ ---------- */
+  .modal {
+    position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center;
+    padding:14px; background:rgba(4,20,15,.82); backdrop-filter:blur(4px);
+  }
+  .modal.open { display:flex; }
+  .mbox {
+    width:100%; max-width:720px; max-height:92vh; display:flex; flex-direction:column; overflow:hidden;
+    background:#fff; border-radius:18px; box-shadow:0 30px 70px -10px rgba(0,0,0,.6);
+  }
+  .mhead { display:flex; align-items:center; gap:10px; padding:12px 14px; border-bottom:1px solid var(--line); }
+  .mhead .t { flex:1; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mhead button { border:0; background:#eef3f1; color:inherit; width:34px; height:34px; border-radius:50%; font-size:1rem; cursor:pointer; }
+  .mbody { overflow:auto; padding:14px; text-align:center; background:var(--bg); }
+  .mbody img { max-width:100%; height:auto; border-radius:8px; }
+  .mbody canvas { width:100%; height:auto; display:block; margin:0 auto 12px; background:#fff; box-shadow:0 4px 14px rgba(0,0,0,.18); }
+  .mbody pre { text-align:left; white-space:pre-wrap; word-break:break-word; font:inherit; font-size:.88rem; margin:0; }
+  .mbody .nope { padding:34px 10px; color:var(--muted); line-height:1.8; }
+  .mbody .nope big { display:block; font-size:2.6rem; margin-bottom:6px; }
+
   /* ---------- সফল হওয়ার স্ক্রিন ---------- */
   .done { display:none; text-align:center; padding:26px 8px 8px; }
   .done .tick {
@@ -143,14 +173,16 @@
 
   @media (prefers-color-scheme: dark) {
     :root { --bg:#0b1411; --text:#e8f1ee; --muted:#93a59e; --line:#243630; }
-    .card { background:#12201b; box-shadow:0 20px 50px -12px rgba(0,0,0,.6); }
-    input[type=text], input[type=tel], textarea { background:#0e1a16; }
-    input:focus, textarea:focus { background:#0e1a16; }
+    .card, .mbox { background:#12201b; box-shadow:0 20px 50px -12px rgba(0,0,0,.6); }
+    input[type=text] { background:#0e1a16; }
+    input:focus { background:#0e1a16; }
     .drop { background:linear-gradient(180deg,#10201a,#0e1b16); border-color:#2f5446; }
     .drop:hover, .drop.over { background:#12261f; }
     #list li { background:#0e1a16; }
+    #list .th { background:#1a2c26; }
     .opt { background:#1a2c26; }
     .btn2 { background:transparent; }
+    .mhead button { background:#1a2c26; }
   }
 </style>
 </head>
@@ -168,7 +200,8 @@
     <div id="formArea">
       <div class="steps">
         <div class="step"><b>১</b>ফাইল বাছুন</div>
-        <div class="step"><b>২</b>আপলোড করুন</div>
+        <div class="step"><b>২</b>নাম দিন</div>
+        <div class="step"><b>৩</b>আপলোড করুন</div>
       </div>
 
       <div class="sec">
@@ -180,6 +213,15 @@
         </div>
         <input type="file" id="file" multiple hidden>
         <ul id="list"></ul>
+        <p class="hint" id="pvHint" style="display:none">👁 ফাইলে ট্যাপ করলে বড় করে প্রিভিউ দেখতে পাবেন।</p>
+      </div>
+
+      <div class="sec">
+        <h2>👤 আপনার নাম <span class="opt">ঐচ্ছিক</span></h2>
+        <div class="field"><span class="ic">✍️</span>
+          <input type="text" id="name" maxlength="40" autocomplete="name" placeholder="আপনার নাম লিখুন">
+        </div>
+        <p class="hint">এই নামেই আপনার ফাইলের ফোল্ডার তৈরি হবে।</p>
       </div>
 
       <!-- স্প্যাম বট আটকানোর লুকানো ঘর -->
@@ -208,9 +250,17 @@
 
 <footer>© <span id="yr"></span> জিলানী টেলিকম, বেলাখান মসজিদ রোড, মিয়া খান নগর, বাকলিয়া, চট্টগ্রাম</footer>
 
+<!-- প্রিভিউ পপআপ -->
+<div class="modal" id="modal">
+  <div class="mbox">
+    <div class="mhead"><span class="t" id="mt"></span><button type="button" id="mclose" aria-label="বন্ধ করুন">✕</button></div>
+    <div class="mbody" id="mb"></div>
+  </div>
+</div>
+
 <script>
 // ====== Apps Script ডিপ্লয় করার পর পাওয়া Web app URL ======
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlehwhMJB0TbM-j_ZArvWzgUzrNKfmYwd_TFJo6PojfqnpxIUPKt0oPERxiFp9_IwvmQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxUaAGoLXSzMw7zbJ7nva8kR8jW7oQol0IyViylYCM_lQOZJCVj6nkclWiHN4w69OKoxQ/exec';
 // ====== চাইলে দোকানের নাম দিন, উপরের হেডিংয়ে দেখাবে ======
 const SHOP_NAME = '';
 // ===========================================================
@@ -220,10 +270,14 @@ document.getElementById('yr').textContent = new Date().getFullYear();
 
 const MAX = 20 * 1024 * 1024;
 const BLOCKED = ['exe','bat','cmd','msi','js','vbs','scr','com','jar','ps1','sh','apk'];
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFWORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const MAX_PREVIEW_PAGES = 30;
 let files = [];
 
 const $ = id => document.getElementById(id);
 const drop = $('drop'), input = $('file'), list = $('list');
+const bn = n => String(n).replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
 
 drop.onclick = () => input.click();
 input.onchange = () => { add(input.files); input.value = ''; };
@@ -236,19 +290,59 @@ function ext(n) { return (n.split('.').pop() || '').toLowerCase(); }
 function icon(n) {
   const e = ext(n);
   if (e === 'pdf') return '📕';
-  if (['jpg','jpeg','png','gif','webp','bmp','heic','svg','tif','tiff'].includes(e)) return '🖼️';
+  if (['jpg','jpeg','png','gif','webp','bmp','heic','heif','svg','tif','tiff'].includes(e)) return '🖼️';
   if (['doc','docx','odt','rtf','txt'].includes(e)) return '📘';
   if (['xls','xlsx','csv','ods'].includes(e)) return '📗';
   if (['ppt','pptx'].includes(e)) return '📙';
   if (['zip','rar','7z'].includes(e)) return '🗜️';
   return '📄';
 }
+function kind(f) {
+  const e = ext(f.name);
+  if (['jpg','jpeg','png','gif','webp','bmp','svg'].includes(e) || /^image\/(jpeg|png|gif|webp|bmp|svg)/.test(f.type)) return 'img';
+  if (e === 'pdf' || f.type === 'application/pdf') return 'pdf';
+  if (['txt','csv'].includes(e)) return 'txt';
+  return 'other';
+}
+
+/* ---------- pdf.js (PDF প্রিভিউয়ের জন্য, দরকার হলেই লোড হয়) ---------- */
+let pdfReady = null;
+function loadPdfJs() {
+  if (pdfReady) return pdfReady;
+  pdfReady = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = PDFJS;
+    s.onload = () => { try { pdfjsLib.GlobalWorkerOptions.workerSrc = PDFWORKER; res(pdfjsLib); } catch (e) { rej(e); } };
+    s.onerror = () => { pdfReady = null; rej(new Error('pdfjs')); };
+    document.head.appendChild(s);
+  });
+  return pdfReady;
+}
+
+async function pdfThumb(o) {
+  try {
+    const lib = await loadPdfJs();
+    const pdf = await lib.getDocument({ data: await o.file.arrayBuffer() }).promise;
+    o.pages = pdf.numPages;
+    const page = await pdf.getPage(1);
+    const w = page.getViewport({ scale: 1 }).width;
+    const vp = page.getViewport({ scale: 160 / w });
+    const c = document.createElement('canvas');
+    c.width = vp.width; c.height = vp.height;
+    await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+    o.thumb = c.toDataURL('image/jpeg', .8);
+    render();
+  } catch (e) { /* ব্যর্থ হলে আইকনই থাকবে */ }
+}
 
 function add(fl) {
   for (const f of fl) {
     if (f.size > MAX) { show('"'+f.name+'" ২০ MB এর বেশি, তাই নেওয়া গেল না', 'err'); continue; }
     if (BLOCKED.includes(ext(f.name))) { show('"'+f.name+'" এই ধরনের ফাইল নেওয়া হয় না', 'err'); continue; }
-    files.push({ file: f, state: '' });
+    const o = { file: f, state: '', kind: kind(f) };
+    if (o.kind === 'img') o.url = URL.createObjectURL(f);
+    files.push(o);
+    if (o.kind === 'pdf') pdfThumb(o);
     $('msg').className = '';
   }
   render();
@@ -256,21 +350,108 @@ function add(fl) {
 
 function render() {
   list.innerHTML = '';
+  $('pvHint').style.display = files.length ? 'block' : 'none';
   files.forEach((o, i) => {
     const li = document.createElement('li');
-    li.innerHTML = '<span class="fi">'+icon(o.file.name)+'</span><div class="mid"><span class="n"></span><span class="s">'+size(o.file.size)+'</span></div>';
-    li.querySelector('.n').textContent = o.file.name;
+    const th = document.createElement('div'); th.className = 'th';
+    const src = o.kind === 'img' ? o.url : o.thumb;
+    if (src) {
+      const im = new Image(); im.src = src; im.alt = '';
+      im.onerror = () => { th.textContent = icon(o.file.name); };
+      th.appendChild(im);
+    } else th.textContent = icon(o.file.name);
+
+    const mid = document.createElement('div'); mid.className = 'mid';
+    const n = document.createElement('span'); n.className = 'n'; n.textContent = o.file.name;
+    const s = document.createElement('span'); s.className = 's';
+    s.textContent = size(o.file.size) + (o.pages ? ' · ' + bn(o.pages) + ' পৃষ্ঠা' : '');
+    mid.append(n, s);
+
+    th.onclick = mid.onclick = () => preview(o);
+    li.append(th, mid);
+
+    const pv = document.createElement('button');
+    pv.type = 'button'; pv.className = 'pv'; pv.textContent = '👁'; pv.title = 'প্রিভিউ';
+    pv.onclick = () => preview(o);
+    li.appendChild(pv);
+
     if (o.state === 'ok') li.insertAdjacentHTML('beforeend', '<span class="st ok">✓</span>');
     else if (o.state === 'bad') li.insertAdjacentHTML('beforeend', '<span class="st bad">✗</span>');
     else if (o.state === 'load') li.insertAdjacentHTML('beforeend', '<span class="st load"></span>');
     else {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'x'; b.textContent = '✕'; b.title = 'বাদ দিন';
-      b.onclick = () => { files.splice(i, 1); render(); };
+      b.onclick = () => { if (o.url) URL.revokeObjectURL(o.url); files.splice(files.indexOf(o), 1); render(); };
       li.appendChild(b);
     }
     list.appendChild(li);
   });
+}
+
+/* ---------- প্রিভিউ পপআপ ---------- */
+const modal = $('modal'), mb = $('mb');
+let pvToken = 0;
+
+function closeModal() { pvToken++; modal.classList.remove('open'); mb.innerHTML = ''; document.body.style.overflow = ''; }
+$('mclose').onclick = closeModal;
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function nope(o, extra) {
+  mb.innerHTML = '';
+  const d = document.createElement('div'); d.className = 'nope';
+  d.innerHTML = '<big>' + icon(o.file.name) + '</big>';
+  d.append(document.createTextNode((extra || 'এই ফাইলের প্রিভিউ ব্রাউজারে দেখানো যায় না।') + ' তবে ফাইলটা ঠিকমতো আপলোড হবে।'));
+  d.append(document.createElement('br'), document.createTextNode(o.file.name + ' · ' + size(o.file.size)));
+  mb.appendChild(d);
+}
+
+async function preview(o) {
+  const token = ++pvToken;
+  $('mt').textContent = o.file.name;
+  mb.innerHTML = '<div class="nope">লোড হচ্ছে…</div>';
+  modal.classList.add('open'); document.body.style.overflow = 'hidden';
+
+  if (o.kind === 'img') {
+    mb.innerHTML = '';
+    const im = new Image(); im.src = o.url; im.alt = o.file.name;
+    im.onerror = () => nope(o);
+    mb.appendChild(im);
+  } else if (o.kind === 'pdf') {
+    try {
+      const lib = await loadPdfJs();
+      const pdf = await lib.getDocument({ data: await o.file.arrayBuffer() }).promise;
+      if (token !== pvToken) return;
+      mb.innerHTML = '';
+      const total = Math.min(pdf.numPages, MAX_PREVIEW_PAGES);
+      const cssW = Math.max(280, mb.clientWidth - 28);
+      for (let p = 1; p <= total; p++) {
+        const page = await pdf.getPage(p);
+        if (token !== pvToken) return;
+        const w = page.getViewport({ scale: 1 }).width;
+        const vp = page.getViewport({ scale: (cssW / w) * 1.5 });
+        const c = document.createElement('canvas');
+        c.width = vp.width; c.height = vp.height;
+        mb.appendChild(c);
+        await page.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+      }
+      if (pdf.numPages > total) {
+        const m = document.createElement('div'); m.className = 'nope';
+        m.textContent = 'প্রথম ' + bn(total) + ' পৃষ্ঠা দেখানো হলো। মোট ' + bn(pdf.numPages) + ' পৃষ্ঠা আপলোড হবে।';
+        mb.appendChild(m);
+      }
+    } catch (e) { if (token === pvToken) nope(o, 'PDF প্রিভিউ লোড করা যায়নি।'); }
+  } else if (o.kind === 'txt') {
+    try {
+      const t = await o.file.slice(0, 6000).text();
+      if (token !== pvToken) return;
+      mb.innerHTML = '';
+      const pre = document.createElement('pre'); pre.textContent = t + (o.file.size > 6000 ? '\n…' : '');
+      mb.appendChild(pre);
+    } catch (e) { nope(o); }
+  } else {
+    nope(o);
+  }
 }
 
 function show(t, type) { const m = $('msg'); m.textContent = t; m.className = type; }
@@ -297,7 +478,9 @@ $('f').addEventListener('submit', async e => {
 
   const btn = $('send'); btn.disabled = true; btn.textContent = 'আপলোড হচ্ছে… একটু অপেক্ষা করুন';
   $('bar').style.display = 'block'; $('msg').className = '';
-  const sid = Math.random().toString(36).slice(2, 8);
+  // আবার চেষ্টা করলেও একই ফোল্ডারে যাবে, তাই সফল না হওয়া পর্যন্ত একই কোড থাকে
+  if (!window.__sid) window.__sid = Math.random().toString(36).slice(2, 8);
+  const sid = window.__sid;
   let done = 0, failed = 0;
   $('fill').style.width = '4%';
 
@@ -306,6 +489,7 @@ $('f').addEventListener('submit', async e => {
     o.state = 'load'; render();
     try {
       const body = JSON.stringify({
+        name: $('name').value.trim(),
         website: $('website').value, submissionId: sid,
         fileName: o.file.name, mimeType: o.file.type, data: await toBase64(o.file)
       });
@@ -323,6 +507,8 @@ $('f').addEventListener('submit', async e => {
 
   btn.disabled = false; btn.textContent = 'আপলোড করুন';
   if (!failed) {
+    files.forEach(o => { if (o.url) URL.revokeObjectURL(o.url); });
+    window.__sid = null;
     files = []; render();
     $('formArea').style.display = 'none';
     $('done').style.display = 'block';
