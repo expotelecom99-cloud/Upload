@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#062a20">
-<title>ফাইল আপলোড</title>
+<title>জিলানি টেলিকম | ফাইল আপলোড</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -38,7 +38,20 @@
     padding:6px 14px; border-radius:99px; background:rgba(255,255,255,.14);
     border:1px solid rgba(255,255,255,.25); backdrop-filter:blur(6px);
   }
-  .hero h1 { font-size:clamp(1.7rem,6vw,2.3rem); margin:16px 0 8px; line-height:1.25; font-weight:700; }
+  .brand { display:inline-flex; align-items:center; gap:12px; margin-bottom:20px; text-align:left; }
+  .brand .logo {
+    flex:none; width:54px; height:54px; border-radius:17px; display:flex; align-items:center; justify-content:center;
+    font-size:1.8rem; font-weight:700; color:var(--deep);
+    background:linear-gradient(135deg,#f9e29b,var(--gold));
+    box-shadow:0 12px 26px -6px rgba(232,182,60,.75), inset 0 1px 0 rgba(255,255,255,.6);
+  }
+  .brand .bn {
+    display:block; font-size:clamp(1.7rem,7vw,2.3rem); font-weight:700; line-height:1.1;
+    background:linear-gradient(90deg,#fff 30%,#f6d77a 100%); -webkit-background-clip:text; background-clip:text;
+    color:transparent; -webkit-text-fill-color:transparent;
+  }
+  .brand small { display:block; margin-top:3px; font-size:.74rem; letter-spacing:.14em; color:rgba(255,255,255,.72); font-weight:500; }
+  .hero h1 { font-size:clamp(1.35rem,5vw,1.8rem); margin:18px 0 8px; line-height:1.25; font-weight:600; }
   .hero p { margin:0 auto; max-width:420px; color:rgba(255,255,255,.82); line-height:1.6; }
 
   /* ---------- মূল কার্ড ---------- */
@@ -189,6 +202,10 @@
 <body>
 
 <header class="hero">
+  <div class="brand">
+    <div class="logo">জ</div>
+    <div><span class="bn">জিলানি টেলিকম</span><small>অনলাইন সেবা</small></div>
+  </div><br>
   <span class="badge">🔒 নিরাপদ ও দ্রুত আপলোড</span>
   <h1 id="title">আপনার ফাইল পাঠান</h1>
   <p>প্রিন্ট বা অন্য যেকোনো কাজের ফাইল এখানে আপলোড করুন। আমরা সরাসরি পেয়ে যাব, WhatsApp বা মেইলের ঝামেলা নেই।</p>
@@ -248,7 +265,7 @@
   </form>
 </main>
 
-<footer>© <span id="yr"></span> জিলানী টেলিকম, বেলাখান মসজিদ রোড, মিয়া খান নগর, বাকলিয়া, চট্টগ্রাম</footer>
+<footer>© <span id="yr"></span> জিলানি টেলিকম, বেলাখান মসজিদ রোড, মিয়া খান নগর, বাকলিয়া, চট্টগ্রাম</footer>
 
 <!-- প্রিভিউ পপআপ -->
 <div class="modal" id="modal">
@@ -261,11 +278,8 @@
 <script>
 // ====== Apps Script ডিপ্লয় করার পর পাওয়া Web app URL ======
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxUaAGoLXSzMw7zbJ7nva8kR8jW7oQol0IyViylYCM_lQOZJCVj6nkclWiHN4w69OKoxQ/exec';
-// ====== চাইলে দোকানের নাম দিন, উপরের হেডিংয়ে দেখাবে ======
-const SHOP_NAME = '';
 // ===========================================================
 
-if (SHOP_NAME) document.getElementById('title').textContent = SHOP_NAME + '-এ ফাইল পাঠান';
 document.getElementById('yr').textContent = new Date().getFullYear();
 
 const MAX = 20 * 1024 * 1024;
